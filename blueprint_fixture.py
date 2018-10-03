@@ -29,7 +29,7 @@ class BlueprintTest(BlueprintTestInterface):
         created.
         """
         my_ip = requests.get("http://ipinfo.io/ip")
-        test_machine = CidrBlock(my_ip.content.decode("utf-8"))
+        test_machine = CidrBlock(my_ip.content.decode("utf-8").strip())
         self.client.paths.add(test_machine, service, 8200)
         self.client.paths.add(test_machine, service, 8201)
 
