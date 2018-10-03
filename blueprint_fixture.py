@@ -5,6 +5,7 @@ This fixture doesn't do any setup, but verifies that the created service is
 running default apache.
 """
 import requests
+import hvac
 from cloudless.testutils.blueprint_tester import call_with_retries
 from cloudless.testutils.fixture import BlueprintTestInterface, SetupInfo
 from cloudless.types.networking import CidrBlock
@@ -38,14 +39,21 @@ class BlueprintTest(BlueprintTestInterface):
         Given the network name and the service name of the service under test,
         verify that it's behaving as expected.
         """
-        def check_responsive():
+        def check_vault_setup():
             public_ips = [i.public_ip for s in service.subnetworks for i in s.instances]
-            assert public_ips
+            assert public_ips, "No services are running..."
             for public_ip in public_ips:
-                response = requests.get("http://%s" % public_ip)
-                expected_content = "Hello World"
-                assert response.content, "No content in response"
-                assert expected_content in str(response.content), (
-                    "Unexpected content in response: %s" % response.content)
-
-        call_with_retries(check_responsive, RETRY_COUNT, RETRY_DELAY)
+                shares = 1
+                threshold = 1
+                client = hvac.Client(url='http://%s:8200' % public_ip)
+                result = client.initialize(shares, threshold)
+                root_token = result['root_token']
+                keys = result['keys']
+                client.unseal_multi(keys)
+                logged_in_client = hvac.Client(url='http://%s:8200' % public_ip, token=root_token)
+                logged_in_client.write('secret/foo', baz='bar', lease='1h')
+                my_secret = logged_in_client.read('secret/foo')
+                logged_in_client.delete('secret/foo')
+                assert "baz" in my_secret["data"], "Baz not in my_secret: %s" % my_secret
+                assert my_secret["data"]["baz"] == "bar", "Baz not 'bar': %s" % my_secret
+        call_with_retries(check_vault_setup, RETRY_COUNT, RETRY_DELAY)
