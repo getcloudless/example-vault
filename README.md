@@ -1,9 +1,23 @@
-# Apache Service Example
+# Vault Service Example
 
-This is an example of creating a service running Apache.  Note that this
-blueprint references an image created by the base image scripts at
+This is an example of creating a simple single node Vault setup that uses the
+filesystem backend.  Note that this blueprint references an image created by the
+base image scripts at
 [https://github.com/getcloudless/example-base-image](https://github.com/getcloudless/example-base-image),
 so this will fail unless you run that first.
+
+## Installation
+
+You can clone this repo, and then install Cloudless and the other dependencies
+using [pipenv](https://pipenv.readthedocs.io/en/latest/):
+
+```shell
+$ git clone https://github.com/getcloudless/example-vault.git
+$ cd example-vault
+$ pipenv install
+$ pipenv shell
+$ which cldls
+```
 
 ## Usage
 
@@ -51,14 +65,3 @@ cldls service-test cleanup service_test_configuration.yml
 ```
 
 You're done!  The run step will run all these steps in order.
-
-## Files
-
-- `service_test_configuration.yml`: Configuration file for the service test
-  framework.
-- `blueprint.yml`: Blueprint that is actually used to create the service.  This
-  is the thing we are really testing.
-- `apache_startup_script.sh`: Script referenced by the blueprint that will set
-  up Apache.
-- `blueprint_fixture.py`: Python test fixture that will set up dependencies and
-  verify that things are behaving as expected.
