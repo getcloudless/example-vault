@@ -28,8 +28,10 @@ class BlueprintTest(BlueprintTestInterface):
         Do any setup that must happen after the service under test has been
         created.
         """
-        internet = CidrBlock("0.0.0.0/0")
-        self.client.paths.add(internet, service, 80)
+        my_ip = requests.get("http://ipinfo.io/ip")
+        test_machine = CidrBlock(my_ip.content.decode("utf-8").strip())
+        self.client.paths.add(test_machine, service, 8200)
+        self.client.paths.add(test_machine, service, 8201)
 
     def verify(self, network, service, setup_info):
         """
